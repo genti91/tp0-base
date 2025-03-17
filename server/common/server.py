@@ -10,7 +10,6 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._running = True
-        self._clients = []
 
         def handle_shutdown(_signum, _frame):
             self._running = False
@@ -31,10 +30,10 @@ class Server:
         # the server
         while self._running:
             client_sock = self.__accept_new_connection()
-            self._clients.append(client_sock)
-            self.__handle_client_connection(client_sock)
-        for client in self._clients:
-            client.close()
+            try:
+                self.__handle_client_connection(client_sock)
+            finally:
+                client_sock.close()
         self._server_socket.close()
 
     def __handle_client_connection(self, client_sock):
