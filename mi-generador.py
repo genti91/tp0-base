@@ -15,7 +15,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                     "PYTHONUNBUFFERED=1",
                     "LOGGING_LEVEL=DEBUG"
                 ],
-                "networks": ["testing_net"]
+                "networks": ["testing_net"],
+                "volumes": "./config.ini:/server/config.ini"
             }
         },
         "networks": {
@@ -38,7 +39,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "CLI_LOG_LEVEL=DEBUG"
             ],
             "networks": ["testing_net"],
-            "depends_on": ["server"]
+            "depends_on": ["server"],
+            "volumes": "./config.yaml:/client/config.yaml"
         }
 
     yaml_output = yaml.dump(
