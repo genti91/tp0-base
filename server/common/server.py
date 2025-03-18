@@ -10,12 +10,9 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._running = True
+        self._clients = []
 
-        def handle_shutdown(_signum, _frame):
-            self._running = False
-            logging.info("action: shutdown | result: success")
-
-        signal.signal(signal.SIGTERM, handle_shutdown)
+        signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
     def run(self):
         """
@@ -26,12 +23,14 @@ class Server:
         finishes, servers starts to accept new connections again
         """
 
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
         while self._running:
-            with self.__accept_new_connection() as client_sock:
+            try:
+                client_sock = self.__accept_new_connection()
+                self._clients.append(client_sock)
                 self.__handle_client_connection(client_sock)
-        self._server_socket.close()
+            except OSError as e:
+                if not self._running:
+                    logging.error(f"action: accept_connections | result: fail | error: {e}")
 
     def __handle_client_connection(self, client_sock):
         """
@@ -65,3 +64,10 @@ class Server:
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
+    
+    def __handle_shutdown(self, _signum, _frame):
+        self._running = False
+        for client in self._clients:
+            client.close()
+        self._server_socket.close()
+        logging.info("action: shutdown | result: success")
