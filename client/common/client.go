@@ -62,7 +62,10 @@ func (c *Client) StartClientLoop() {
 		<-signalChan
 		close(signalChan)
 		log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
-		c.conn.Close()
+		if c.conn != nil {
+			c.conn.Close()
+		}
+		os.Exit(0)
 	}()
 
 	// There is an autoincremental msgID to identify every message sent
