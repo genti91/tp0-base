@@ -60,6 +60,7 @@ func (c *Client) StartClientLoop() {
 	
 	go func() {
 		<-signalChan
+		close(signalChan)
 		log.Infof("action: shutdown | result: success | client_id: %v", c.config.ID)
 		c.conn.Close()
 	}()
