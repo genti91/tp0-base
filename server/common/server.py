@@ -88,3 +88,8 @@ class Server:
             logging.info("action: sorteo | result: success")
         except OSError as e:
             logging.error(f'action: sorteo | result: fail | error: {e}')
+        finally:
+            for client_sock in self.agencies.values():
+                client_sock.close()
+            self.agencies.clear()
+            self._clients.clear()
