@@ -2,7 +2,6 @@ import socket
 import logging
 import signal
 from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
-from time import sleep
 
 class Server:
     def __init__(self, port, listen_backlog, agencies_amount):
@@ -90,7 +89,6 @@ class Server:
         except OSError as e:
             logging.error(f'action: sorteo | result: fail | error: {e}')
         finally:
-            sleep(2)
             for client_sock in self.agencies.values():
                 client_sock.close()
             self.agencies.clear()
