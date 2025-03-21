@@ -12,10 +12,10 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "image": "server:latest",
                 "entrypoint": "python3 /main.py",
                 "environment": [
-                    "PYTHONUNBUFFERED=1",
-                    "LOGGING_LEVEL=DEBUG"
+                    "PYTHONUNBUFFERED=1"
                 ],
-                "networks": ["testing_net"]
+                "networks": ["testing_net"],
+                "volumes": ["./server/config.ini:/config.ini"]
             }
         },
         "networks": {
@@ -43,7 +43,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "NUMERO=7574"
             ],
             "networks": ["testing_net"],
-            "depends_on": ["server"]
+            "depends_on": ["server"],
+            "volumes": ["./client/config.yaml:/config.yaml"]
         }
 
     yaml_output = yaml.dump(
