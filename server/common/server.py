@@ -1,6 +1,8 @@
 import socket
 import logging
-
+import signal
+from common.utils import receive_bet
+from common.utils import store_bets
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -8,6 +10,10 @@ class Server:
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self._running = True
+        self._clients = []
+
+        signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
     def run(self):
         """
@@ -18,11 +24,14 @@ class Server:
         finishes, servers starts to accept new connections again
         """
 
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
-        while True:
-            client_sock = self.__accept_new_connection()
-            self.__handle_client_connection(client_sock)
+        while self._running:
+            try:
+                client_sock = self.__accept_new_connection()
+                self._clients.append(client_sock)
+                self.__handle_client_connection(client_sock)
+            except OSError as e:
+                if not self._running:
+                    logging.error(f"action: accept_connections | result: fail | error: {e}")
 
     def __handle_client_connection(self, client_sock):
         """
@@ -32,14 +41,11 @@ class Server:
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
-            addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
+            bet = receive_bet(client_sock)
+            store_bets([bet])
+            logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error("action: apuesta_almacenada | result: fail | error: {e}")
         finally:
             client_sock.close()
 
@@ -56,3 +62,10 @@ class Server:
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
+    
+    def __handle_shutdown(self, _signum, _frame):
+        self._running = False
+        for client in self._clients:
+            client.close()
+        self._server_socket.close()
+        logging.info("action: shutdown | result: success")
