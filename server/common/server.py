@@ -88,7 +88,3 @@ class Server:
             logging.info("action: sorteo | result: success")
         except OSError as e:
             logging.error(f'action: sorteo | result: fail | error: {e}')
-        finally:
-            for client in self.agencies.values():
-                client.close()
-            self.agencies = {}
