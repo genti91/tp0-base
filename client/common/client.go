@@ -68,7 +68,12 @@ func (c *Client) StartClientLoop() {
 		}
 		os.Exit(0)
 	}()
-
+	
+	defer func() {
+        if c.conn != nil {
+            c.conn.Close()
+        }
+    }()
 
 	c.createClientSocket()
 	
@@ -112,7 +117,4 @@ func (c *Client) StartClientLoop() {
 		winnersAmount = len(strings.Split(strings.TrimSpace(msg), ";"))
 	}
 	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winnersAmount)
-
-	c.conn.Close()
-
 }

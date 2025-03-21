@@ -39,6 +39,7 @@ func SendBatches(maxBatch int, agency string, writer *bufio.Writer) error {
 	if err != nil {
 		return err
 	}
+	defer file.Close()
 	reader := csv.NewReader(file)
 	lineCount := 0
 	var buffer bytes.Buffer 

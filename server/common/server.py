@@ -3,10 +3,8 @@ import logging
 import signal
 from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
 
-AGENCIES_AMOUNT = 5
-
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, agencies_amount):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
@@ -14,6 +12,7 @@ class Server:
         self._running = True
         self._clients = []
         self.agencies = {}
+        self.agencies_amount = agencies_amount
 
         signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
@@ -74,7 +73,7 @@ class Server:
 
     def __send_bet_results(self, client_sock, agency_id):
         self.agencies[agency_id] = client_sock
-        if len(self.agencies) != AGENCIES_AMOUNT:
+        if len(self.agencies) != self.agencies_amount:
             return
         try:
             bets = load_bets()
@@ -93,4 +92,3 @@ class Server:
             for client in self.agencies.values():
                 client.close()
             self.agencies = {}
-            self.__handle_shutdown(None, None)

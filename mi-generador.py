@@ -13,7 +13,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "entrypoint": "python3 /main.py",
                 "environment": [
                     "PYTHONUNBUFFERED=1",
-                    "LOGGING_LEVEL=DEBUG"
+                    "LOGGING_LEVEL=DEBUG",
+                    f"AGENCIES_AMOUNT={cantidad_clientes}"
                 ],
                 "networks": ["testing_net"],
                 "volumes": ["./server/config.ini:/config.ini"]
