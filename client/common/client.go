@@ -112,7 +112,4 @@ func (c *Client) StartClientLoop() {
 	}
 	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winnersAmount)
 	c.conn.Close()
-
-	time.Sleep(1 * time.Second)
-
 }
