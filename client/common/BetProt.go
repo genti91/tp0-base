@@ -48,6 +48,7 @@ func SendBatches(maxBatch int, agency string, writer *bufio.Writer) error {
 			if err := SendBatch(buffer, writer, false); err != nil {
 				return err
 			}
+			buffer.Reset()
 		}
 		line, err := reader.Read()
 		if err == io.EOF {
