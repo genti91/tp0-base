@@ -1,8 +1,9 @@
 import socket
 import logging
 import signal
-from common.utils import receive_bets
-from common.utils import store_bets
+from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
+
+AGENCIES_AMOUNT = 5
 
 class Server:
     def __init__(self, port, listen_backlog):
@@ -12,6 +13,7 @@ class Server:
         self._server_socket.listen(listen_backlog)
         self._running = True
         self._clients = []
+        self.agencies = {}
 
         signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
@@ -47,7 +49,7 @@ class Server:
         except OSError as e:
             logging.error(f'action: apuesta_recibida | result: fail | cantidad: {len(bets)}')
         finally:
-            client_sock.close()
+            self.__send_bet_results(client_sock, bets[0].agency)
 
     def __accept_new_connection(self):
         """
@@ -69,3 +71,25 @@ class Server:
             client.close()
         self._server_socket.close()
         logging.info("action: shutdown | result: success")
+
+    def __send_bet_results(self, client_sock, agency_id):
+        self.agencies[agency_id] = client_sock
+        if len(self.agencies) != AGENCIES_AMOUNT:
+            return
+        try:
+            bets = load_bets()
+            agency_winers = {}
+            for bet in bets:
+                if has_won(bet):
+                    agency_winers[bet.agency] = agency_winers.get(bet.agency, []) + [bet.document]
+            for agency_id in self.agencies.keys():
+                winers = agency_winers.get(agency_id, [])
+                documents_str = ';'.join(winers) + '\n' if winers else '\n'
+                write_to_socket(self.agencies[agency_id], documents_str.encode())
+            logging.info("action: sorteo | result: success")
+        except OSError as e:
+            logging.error(f'action: sorteo | result: fail | error: {e}')
+        finally:
+            for client in self.agencies.values():
+                client.close()
+            self.agencies = {}

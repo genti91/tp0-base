@@ -53,18 +53,14 @@ def load_bets() -> list[Bet]:
 def receive_bets(client_sock):
     isLast = 0
     bets = []
-    batchNumber = 0
     try:
         while not isLast:
             isLast = receive_from_socket(client_sock, LAST_BATCH_SIZE)
-            batchNumber += 1
-            print("batchNumber: ", batchNumber)
             isLast = int.from_bytes(isLast, byteorder='big')
             data = receive_from_socket(client_sock, SIZE_LENGTH)
             length = int.from_bytes(data, byteorder='big')
             data = receive_from_socket(client_sock, length)
             data_decoded = data.decode().split('\n')
-            #print("data_decoded: ", data_decoded)
             for bet_str in data_decoded:
                 if bet_str != '':
                     bet_parts = bet_str.split(';')
@@ -74,7 +70,6 @@ def receive_bets(client_sock):
         write_to_socket(client_sock, "ERR\n".encode())
         raise e
     write_to_socket(client_sock, "OK\n".encode())
-    print("bets amount: ", len(bets))
     return bets
     
 

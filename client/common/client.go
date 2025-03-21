@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"strings"
 
 	"github.com/op/go-logging"
 )
@@ -94,7 +95,23 @@ func (c *Client) StartClientLoop() {
 		log.Infof("action: apuestas_enviadas | result: success")
 	} else {
 		log.Errorf("action: apuestas_enviadas | result: fail")
+		return
 	}
+
+	msg, err = bufio.NewReader(c.conn).ReadString('\n')
+
+	if err != nil {
+		log.Errorf("action: consulta_ganadores | result: fail | error: %v",
+			err,
+		)
+		return
+	}
+
+	winnersAmount := 0
+	if msg != "\n" {
+		winnersAmount = len(strings.Split(strings.TrimSpace(msg), ";"))
+	}
+	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winnersAmount)
 
 	c.conn.Close()
 
