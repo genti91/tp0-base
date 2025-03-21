@@ -93,3 +93,4 @@ class Server:
             for client in self.agencies.values():
                 client.close()
             self.agencies = {}
+            self.__handle_shutdown(None, None)
