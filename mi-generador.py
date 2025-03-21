@@ -15,7 +15,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                     "PYTHONUNBUFFERED=1",
                     "LOGGING_LEVEL=DEBUG"
                 ],
-                "networks": ["testing_net"]
+                "networks": ["testing_net"],
+                "volumes": ["./server/config.ini:/config.ini"]
             }
         },
         "networks": {
@@ -43,7 +44,11 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "NUMERO=7574"
             ],
             "networks": ["testing_net"],
-            "depends_on": ["server"]
+            "depends_on": ["server"],
+            "volumes": [
+                "./client/config.yaml:/config.yaml",
+                f"./.data/agency-{i}.csv:/agency-{i}.csv",
+            ]
         }
 
     yaml_output = yaml.dump(
