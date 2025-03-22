@@ -13,6 +13,7 @@ import (
 )
 
 var log = logging.MustGetLogger("log")
+var backend = logging.NewChannelMemoryBackend(100)
 
 // ClientConfig Configuration used by the client
 type ClientConfig struct {
@@ -66,8 +67,16 @@ func (c *Client) StartClientLoop() {
 		if c.conn != nil {
 			c.conn.Close()
 		}
+		backend.Flush()
 		os.Exit(0)
 	}()
+
+	defer func() {
+        if c.conn != nil {
+            c.conn.Close()
+        }
+        backend.Flush()
+    }()
 
 	c.createClientSocket()
 	
@@ -111,5 +120,6 @@ func (c *Client) StartClientLoop() {
 		winnersAmount = len(strings.Split(strings.TrimSpace(msg), ";"))
 	}
 	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winnersAmount)
-	c.conn.Close()
+	backend.Flush()
+    c.conn.Close()
 }
