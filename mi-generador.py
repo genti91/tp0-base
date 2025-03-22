@@ -13,7 +13,6 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "entrypoint": "python3 /main.py",
                 "environment": [
                     "PYTHONUNBUFFERED=1",
-                    "LOGGING_LEVEL=DEBUG",
                     f"AGENCIES_AMOUNT={cantidad_clientes}"
                 ],
                 "networks": ["testing_net"],
@@ -37,7 +36,6 @@ def generar_compose(nombre_archivo, cantidad_clientes):
             "entrypoint": "/client",
             "environment": [
                 f"CLI_ID={i}",
-                "CLI_LOG_LEVEL=DEBUG",
                 "NOMBRE=Santiago Lionel",
                 "APELLIDO=Lorca",
                 "DOCUMENTO=30904465",
