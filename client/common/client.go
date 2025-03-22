@@ -111,6 +111,6 @@ func (c *Client) StartClientLoop() {
 		winnersAmount = len(strings.Split(strings.TrimSpace(msg), ";"))
 	}
 	log.Infof("action: consulta_ganadores | result: success | cant_ganadores: %v", winnersAmount)
-	time.Sleep(5 * time.Second)
+	time.Sleep(time.Duration(5) * time.Second)
 	c.conn.Close()
 }
