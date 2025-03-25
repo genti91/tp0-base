@@ -94,4 +94,4 @@ class Server:
                 client_sock.close()
             self.agencies.clear()
             self._clients.clear()
-            sleep(1)
+            sleep(5)
