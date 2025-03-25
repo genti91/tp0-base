@@ -2,6 +2,7 @@ import socket
 import logging
 import signal
 from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
+from time import sleep
 
 class Server:
     def __init__(self, port, listen_backlog, agencies_amount):
@@ -93,3 +94,4 @@ class Server:
                 client_sock.close()
             self.agencies.clear()
             self._clients.clear()
+            sleep(1)
