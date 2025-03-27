@@ -2,7 +2,7 @@ import socket
 import logging
 import signal
 from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
-from time import sleep
+import multiprocessing
 
 class Server:
     def __init__(self, port, listen_backlog, agencies_amount):
@@ -11,9 +11,11 @@ class Server:
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
         self._running = True
-        self._clients = []
-        self.agencies = {}
-        self.agencies_amount = agencies_amount
+        self._manager = multiprocessing.Manager()
+        self._clients = self._manager.list()
+        self._agencies = self._manager.dict()
+        self._agencies_amount = agencies_amount
+        self._bets_file_lock = multiprocessing.Lock()
 
         signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
@@ -30,7 +32,8 @@ class Server:
             try:
                 client_sock = self.__accept_new_connection()
                 self._clients.append(client_sock)
-                self.__handle_client_connection(client_sock)
+                process = multiprocessing.Process(target=self.__handle_client_connection, args=(client_sock,))
+                process.start()
             except OSError as e:
                 if not self._running:
                     logging.error(f"action: accept_connections | result: fail | error: {e}")
@@ -44,7 +47,8 @@ class Server:
         """
         try:
             bets = receive_bets(client_sock)
-            store_bets(bets)
+            with self._bets_file_lock:
+                store_bets(bets)
             logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
         except OSError as e:
             logging.error(f'action: apuesta_recibida | result: fail | cantidad: {len(bets)}')
@@ -73,24 +77,25 @@ class Server:
         logging.info("action: shutdown | result: success")
 
     def __send_bet_results(self, client_sock, agency_id):
-        self.agencies[agency_id] = client_sock
-        if len(self.agencies) != self.agencies_amount:
+        self._agencies[agency_id] = client_sock
+        if len(self._agencies) != self._agencies_amount:
             return
         try:
-            bets = load_bets()
+            with self._bets_file_lock:
+                bets = load_bets()
             agency_winers = {}
             for bet in bets:
                 if has_won(bet):
                     agency_winers[bet.agency] = agency_winers.get(bet.agency, []) + [bet.document]
-            for agency_id in self.agencies.keys():
+            for agency_id in self._agencies.keys():
                 winers = agency_winers.get(agency_id, [])
                 documents_str = ';'.join(winers) + '\n' if winers else '\n'
-                write_to_socket(self.agencies[agency_id], documents_str.encode())
+                write_to_socket(self._agencies[agency_id], documents_str.encode())
             logging.info("action: sorteo | result: success")
         except OSError as e:
             logging.error(f'action: sorteo | result: fail | error: {e}')
         finally:
-            for client_sock in self.agencies.values():
+            for client_sock in self._agencies.values():
                 client_sock.close()
-            self.agencies.clear()
-            self._clients.clear()
+            self._agencies.clear()
+            self._clients[:] = []
