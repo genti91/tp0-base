@@ -19,6 +19,7 @@ type ClientConfig struct {
 	ServerAddress string
 	LoopAmount    int
 	LoopPeriod    time.Duration
+	MaxBatch	  int
 }
 
 // Client Entity that encapsulates how
@@ -70,22 +71,31 @@ func (c *Client) StartClientLoop() {
 
 	c.createClientSocket()
 	
-	betProt := NewBetProt(c.config.ID)
 	writer := bufio.NewWriter(c.conn)
 
-	if err := betProt.SendBet(writer); err != nil {
-		log.Errorf("action: apuesta_enviada | result: fail | dni: %v | error: %v",
-			betProt.document,
+	if err := SendBatches(c.config.MaxBatch, c.config.ID, writer); err != nil {
+		log.Errorf("action: apuestas_enviadas | result: fail | error: %v",
+			err,
+		)
+		return
+	}
+	
+	msg, err := bufio.NewReader(c.conn).ReadString('\n')
+
+	if err != nil {
+		log.Errorf("action: receive_message | result: fail | client_id: %v | error: %v",
+			c.config.ID,
 			err,
 		)
 		return
 	}
 
-	c.conn.Close()
+	if msg == "OK\n" {
+		log.Infof("action: apuestas_enviadas | result: success")
+	} else {
+		log.Errorf("action: apuestas_enviadas | result: fail")
+	}
 
-	log.Infof("action: apuesta_enviada | result: success | dni: %v | numero: %v",
-		betProt.document,
-		betProt.number,
-	)
+	c.conn.Close()
 
 }

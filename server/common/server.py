@@ -1,7 +1,7 @@
 import socket
 import logging
 import signal
-from common.utils import receive_bet
+from common.utils import receive_bets
 from common.utils import store_bets
 
 class Server:
@@ -41,11 +41,11 @@ class Server:
         client socket will also be closed
         """
         try:
-            bet = receive_bet(client_sock)
-            store_bets([bet])
-            logging.info(f'action: apuesta_almacenada | result: success | dni: {bet.document} | numero: {bet.number}')
+            bets = receive_bets(client_sock)
+            store_bets(bets)
+            logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
         except OSError as e:
-            logging.error("action: apuesta_almacenada | result: fail | error: {e}")
+            logging.error(f'action: apuesta_recibida | result: fail | cantidad: {len(bets)}')
         finally:
             client_sock.close()
 

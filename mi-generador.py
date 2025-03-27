@@ -44,7 +44,10 @@ def generar_compose(nombre_archivo, cantidad_clientes):
             ],
             "networks": ["testing_net"],
             "depends_on": ["server"],
-            "volumes": ["./client/config.yaml:/config.yaml"]
+            "volumes": [
+                "./client/config.yaml:/config.yaml",
+                f"./.data/agency-{i}.csv:/agency-{i}.csv",
+            ]
         }
 
     yaml_output = yaml.dump(
