@@ -1,6 +1,5 @@
 import csv
 import datetime
-import time
 
 
 """ Bets storage location. """
@@ -8,6 +7,7 @@ STORAGE_FILEPATH = "./bets.csv"
 """ Simulated winner number in the lottery contest. """
 LOTTERY_WINNER_NUMBER = 7574
 
+SIZE_LENGTH = 4
 
 """ A lottery bet registry. """
 class Bet:
@@ -49,3 +49,16 @@ def load_bets() -> list[Bet]:
         for row in reader:
             yield Bet(row[0], row[1], row[2], row[3], row[4], row[5])
 
+def receive_bet(client_sock):
+    data = receive_from_socket(client_sock, SIZE_LENGTH)
+    length = int.from_bytes(data, byteorder='big')
+    data = receive_from_socket(client_sock, length)
+    return Bet(*data.decode().split(';'))
+    
+
+
+def receive_from_socket(socket, length):
+    data = bytearray()
+    while len(data) < length:
+        data += socket.recv(length - len(data))
+    return data
