@@ -12,7 +12,8 @@ def generar_compose(nombre_archivo, cantidad_clientes):
                 "image": "server:latest",
                 "entrypoint": "python3 /main.py",
                 "environment": [
-                    "PYTHONUNBUFFERED=1"
+                    "PYTHONUNBUFFERED=1",
+                    f"AGENCIES_AMOUNT={cantidad_clientes}"
                 ],
                 "networks": ["testing_net"],
                 "volumes": ["./server/config.ini:/config.ini"]
@@ -34,11 +35,19 @@ def generar_compose(nombre_archivo, cantidad_clientes):
             "image": "client:latest",
             "entrypoint": "/client",
             "environment": [
-                f"CLI_ID={i}"
+                f"CLI_ID={i}",
+                "NOMBRE=Santiago Lionel",
+                "APELLIDO=Lorca",
+                "DOCUMENTO=30904465",
+                "NACIMIENTO=1999-03-17",
+                "NUMERO=7574"
             ],
             "networks": ["testing_net"],
             "depends_on": ["server"],
-            "volumes": ["./client/config.yaml:/config.yaml"]
+            "volumes": [
+                "./client/config.yaml:/config.yaml",
+                f"./.data/agency-{i}.csv:/agency-{i}.csv",
+            ]
         }
 
     yaml_output = yaml.dump(

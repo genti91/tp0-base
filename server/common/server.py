@@ -1,13 +1,23 @@
 import socket
 import logging
-
+import signal
+from common.utils import receive_bets, store_bets, load_bets, has_won, write_to_socket
+import multiprocessing
 
 class Server:
-    def __init__(self, port, listen_backlog):
+    def __init__(self, port, listen_backlog, agencies_amount):
         # Initialize server socket
         self._server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._server_socket.bind(('', port))
         self._server_socket.listen(listen_backlog)
+        self._running = True
+        self._manager = multiprocessing.Manager()
+        self._clients = self._manager.list()
+        self._agencies = self._manager.dict()
+        self._agencies_amount = agencies_amount
+        self._bets_file_lock = multiprocessing.Lock()
+
+        signal.signal(signal.SIGTERM, self.__handle_shutdown)
 
     def run(self):
         """
@@ -18,11 +28,15 @@ class Server:
         finishes, servers starts to accept new connections again
         """
 
-        # TODO: Modify this program to handle signal to graceful shutdown
-        # the server
-        while True:
-            client_sock = self.__accept_new_connection()
-            self.__handle_client_connection(client_sock)
+        while self._running:
+            try:
+                client_sock = self.__accept_new_connection()
+                self._clients.append(client_sock)
+                process = multiprocessing.Process(target=self.__handle_client_connection, args=(client_sock,))
+                process.start()
+            except OSError as e:
+                if not self._running:
+                    logging.error(f"action: accept_connections | result: fail | error: {e}")
 
     def __handle_client_connection(self, client_sock):
         """
@@ -32,16 +46,14 @@ class Server:
         client socket will also be closed
         """
         try:
-            # TODO: Modify the receive to avoid short-reads
-            msg = client_sock.recv(1024).rstrip().decode('utf-8')
-            addr = client_sock.getpeername()
-            logging.info(f'action: receive_message | result: success | ip: {addr[0]} | msg: {msg}')
-            # TODO: Modify the send to avoid short-writes
-            client_sock.send("{}\n".format(msg).encode('utf-8'))
+            bets = receive_bets(client_sock)
+            with self._bets_file_lock:
+                store_bets(bets)
+            logging.info(f'action: apuesta_recibida | result: success | cantidad: {len(bets)}')
         except OSError as e:
-            logging.error("action: receive_message | result: fail | error: {e}")
+            logging.error(f'action: apuesta_recibida | result: fail | cantidad: {len(bets)}')
         finally:
-            client_sock.close()
+            self.__send_bet_results(client_sock, bets[0].agency)
 
     def __accept_new_connection(self):
         """
@@ -56,3 +68,34 @@ class Server:
         c, addr = self._server_socket.accept()
         logging.info(f'action: accept_connections | result: success | ip: {addr[0]}')
         return c
+    
+    def __handle_shutdown(self, _signum, _frame):
+        self._running = False
+        for client in self._clients:
+            client.close()
+        self._server_socket.close()
+        logging.info("action: shutdown | result: success")
+
+    def __send_bet_results(self, client_sock, agency_id):
+        self._agencies[agency_id] = client_sock
+        if len(self._agencies) != self._agencies_amount:
+            return
+        try:
+            with self._bets_file_lock:
+                bets = load_bets()
+            agency_winers = {}
+            for bet in bets:
+                if has_won(bet):
+                    agency_winers[bet.agency] = agency_winers.get(bet.agency, []) + [bet.document]
+            for agency_id in self._agencies.keys():
+                winers = agency_winers.get(agency_id, [])
+                documents_str = ';'.join(winers) + '\n' if winers else '\n'
+                write_to_socket(self._agencies[agency_id], documents_str.encode())
+            logging.info("action: sorteo | result: success")
+        except OSError as e:
+            logging.error(f'action: sorteo | result: fail | error: {e}')
+        finally:
+            for client_sock in self._agencies.values():
+                client_sock.close()
+            self._agencies.clear()
+            self._clients[:] = []

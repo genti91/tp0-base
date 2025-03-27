@@ -1,6 +1,5 @@
 import csv
 import datetime
-import time
 
 
 """ Bets storage location. """
@@ -8,6 +7,8 @@ STORAGE_FILEPATH = "./bets.csv"
 """ Simulated winner number in the lottery contest. """
 LOTTERY_WINNER_NUMBER = 7574
 
+SIZE_LENGTH = 4
+LAST_BATCH_SIZE = 1
 
 """ A lottery bet registry. """
 class Bet:
@@ -49,3 +50,37 @@ def load_bets() -> list[Bet]:
         for row in reader:
             yield Bet(row[0], row[1], row[2], row[3], row[4], row[5])
 
+def receive_bets(client_sock):
+    isLast = 0
+    bets = []
+    try:
+        while not isLast:
+            isLast = receive_from_socket(client_sock, LAST_BATCH_SIZE)
+            isLast = int.from_bytes(isLast, byteorder='big')
+            data = receive_from_socket(client_sock, SIZE_LENGTH)
+            length = int.from_bytes(data, byteorder='big')
+            data = receive_from_socket(client_sock, length)
+            data_decoded = data.decode().split('\n')
+            for bet_str in data_decoded:
+                if bet_str != '':
+                    bet_parts = bet_str.split(';')
+                    bet = Bet(*bet_parts)
+                    bets.append(bet)
+    except Exception as e:
+        write_to_socket(client_sock, "ERR\n".encode())
+        raise e
+    write_to_socket(client_sock, "OK\n".encode())
+    return bets
+    
+
+def receive_from_socket(socket, length):
+    data = bytearray()
+    while len(data) < length:
+        data += socket.recv(length - len(data))
+    return data
+
+def write_to_socket(socket, data):
+    bytes_sent = 0
+    while bytes_sent < len(data):
+        bytes_sent += socket.send(data[bytes_sent:])
+    return bytes_sent
