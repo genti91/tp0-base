@@ -191,11 +191,21 @@ ej4 - El servidor captura ```SIGTERM``` con ```signal.signal``` y cierra todas l
 
 ej5 - Cuando el cliente se conecta al servidor, envía la apuesta utilizando el siguiente protocolo:
 
-```| LENGTH | BET|```
+```| LENGTH | BET |```
 
 LENGTH = son 4 bytes que representan el tamaño de la apuesta
 
 BET = la apuesta que está en un string serializado de tamaño variable con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER```
+
+ej6 - Para que el cliente pueda enviar múltiples apuestas en baches, el protocolo se mantuvo con el mismo formato, pero se modificó el BET. Ahora son varias apuestas separadas pro un '\n'.
+
+Protocolo:
+
+```| LENGTH | BETS |```
+
+LENGTH = son 4 bytes que representan el tamaño de la apuesta
+
+BETS = las apuestas concatenadas con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER\n``` 
 
 ## Ejecución
 
