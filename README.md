@@ -189,6 +189,14 @@ ej3 - Se creó un script que usa un contenedor Docker para enviar un mensaje de 
 
 ej4 - El servidor captura ```SIGTERM``` con ```signal.signal``` y cierra todas las conexiones antes de apagar. Y el cliente usa ```signal.Notify``` en un goroutine para detectar ```SIGTERM``` y cerrar su conexión para finalizar el proceso limpiamente.
 
+ej5 - Cuando el cliente se conecta al servidor, envía la apuesta utilizando el siguiente protocolo:
+
+```| LENGTH | BET|```
+
+LENGTH = son 4 bytes que representan el tamaño de la apuesta
+
+BET = la apuesta que está en un string serializado de tamaño variable con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER```
+
 ## Ejecución
 
 ej1 - Para ejecutar el ejercicio 1 utilizar el script ```generar-compose.sh``` pasando por parámetro el nombre de archivo y la cantidad de clientes
@@ -207,3 +215,6 @@ ej3 - Para ejecutar el ejercicio 3 primero se debe inicializar el servidor con e
 ej4 - Utilizar los comandos
 - ```make docker-compose-up```
 - ```make docker-compose-down```
+
+ej5 - ej6 - ej7 - ej8 - Utilizar el comando
+- ```make docker-compose-up```
