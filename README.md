@@ -185,6 +185,8 @@ ej1 - Para la solución de este ejercicio se creó un script de python que usa l
 
 ej2 - Se editó el script ```mi-generador.py``` para que utilize docker volumes
 
+ej3 - Se creó un script que usa un contenedor Docker para enviar un mensaje de prueba al echo server mediante netcat y verifica que la respuesta sea idéntica, indicando "success" o "fail".
+
 ## Ejecución
 
 ej1 - Para ejecutar el ejercicio 1 utilizar el script generar-compose.sh pasando por parámetro el nombre de archivo y la cantidad de clientes
@@ -193,3 +195,9 @@ ej1 - Para ejecutar el ejercicio 1 utilizar el script generar-compose.sh pasando
 ej2 - Primero generar el archivo compose con el script ```generar-compose.sh``` y luego utilizar el comando:
 - ```make docker-compose-up```
 
+ej3 - Para ejecutar el ejercicio 3 primero se debe inicializar el servidor con el siguiente comando:
+- ```make docker-compose-up```
+
+ luego ejecutar el script validar-echo-server.sh
+
+- ```validar-echo-server.sh```
