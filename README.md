@@ -183,7 +183,13 @@ La corrección personal tendrá en cuenta la calidad del código entregado y cas
 
 ej1 - Para la solución de este ejercicio se creó un script de python que usa la biblioteca PyYaml para generar el archivo compose, con la cantidad de clientes y el nombre que se pasa por los parámetros.
 
+ej2 - Se editó el script ```mi-generador.py``` para que utilize docker volumes
+
 ## Ejecución
 
 ej1 - Para ejecutar el ejercicio 1 utilizar el script generar-compose.sh pasando por parámetro el nombre de archivo y la cantidad de clientes
 - ```./generar-compose.sh docker-compose-dev.yaml 5```
+
+ej2 - Primero generar el archivo compose con el script ```generar-compose.sh``` y luego utilizar el comando:
+- ```make docker-compose-up```
+
