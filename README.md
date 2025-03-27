@@ -197,11 +197,13 @@ LENGTH = son 4 bytes que representan el tamaño de la apuesta
 
 BET = la apuesta que está en un string serializado de tamaño variable con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER```
 
-ej6 - Para que el cliente pueda enviar múltiples apuestas en baches, el protocolo se mantuvo con el mismo formato, pero se modificó el BET. Ahora son varias apuestas separadas pro un '\n'.
+ej6 - Para que el cliente pueda enviar múltiples apuestas en baches, se agregó un campo ```LAST_BATCH```, para que el servidor sepa cuál es el último batch, y se modificó el BET, que hora son varias apuestas separadas pro un '\n'.
 
 Protocolo:
 
-```| LENGTH | BETS |```
+```| LAST_BATCH | LENGTH | BETS |```
+
+LAST_BATCH = un byte que marca si el batch es el último o no
 
 LENGTH = son 4 bytes que representan el tamaño de la apuesta
 
