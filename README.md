@@ -187,6 +187,8 @@ ej2 - Se editó el script ```mi-generador.py``` para que utilize docker volumes
 
 ej3 - Se creó un script que usa un contenedor Docker para enviar un mensaje de prueba al echo server mediante netcat y verifica que la respuesta sea idéntica, indicando "success" o "fail".
 
+ej4 - El servidor captura SIGTERM con signal.signal y cierra todas las conexiones antes de apagar. Y el cliente usa signal.Notify en un goroutine para detectar SIGTERM y cerrar su conexión para finalizar el proceso limpiamente.
+
 ## Ejecución
 
 ej1 - Para ejecutar el ejercicio 1 utilizar el script generar-compose.sh pasando por parámetro el nombre de archivo y la cantidad de clientes
@@ -201,3 +203,7 @@ ej3 - Para ejecutar el ejercicio 3 primero se debe inicializar el servidor con e
  luego ejecutar el script validar-echo-server.sh
 
 - ```validar-echo-server.sh```
+
+ej4 - Utilizar los comandos
+- ```make docker-compose-up```
+- ```make docker-compose-down```
