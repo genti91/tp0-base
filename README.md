@@ -178,3 +178,57 @@ Se espera que se redacte una sección del README en donde se indique cómo ejecu
 Se proveen [pruebas automáticas](https://github.com/7574-sistemas-distribuidos/tp0-tests) de caja negra. Se exige que la resolución de los ejercicios pase tales pruebas, o en su defecto que las discrepancias sean justificadas y discutidas con los docentes antes del día de la entrega. El incumplimiento de las pruebas es condición de desaprobación, pero su cumplimiento no es suficiente para la aprobación. Respetar las entradas de log planteadas en los ejercicios, pues son las que se chequean en cada uno de los tests.
 
 La corrección personal tendrá en cuenta la calidad del código entregado y casos de error posibles, se manifiesten o no durante la ejecución del trabajo práctico. Se pide a los alumnos leer atentamente y **tener en cuenta** los criterios de corrección informados  [en el campus](https://campusgrado.fi.uba.ar/mod/page/view.php?id=73393).
+
+## Solucion
+
+ej1 - Para la solución de este ejercicio se creó un script de python que usa la biblioteca PyYaml para generar el archivo compose, con la cantidad de clientes y el nombre que se pasa por los parámetros.
+
+ej2 - Se editó el script ```mi-generador.py``` para que utilize docker volumes
+
+ej3 - Se creó un script que usa un contenedor Docker para enviar un mensaje de prueba al echo server mediante netcat y verifica que la respuesta sea idéntica, indicando "success" o "fail".
+
+ej4 - El servidor captura ```SIGTERM``` con ```signal.signal``` y cierra todas las conexiones antes de apagar. Y el cliente usa ```signal.Notify``` en un goroutine para detectar ```SIGTERM``` y cerrar su conexión para finalizar el proceso limpiamente.
+
+ej5 - Cuando el cliente se conecta al servidor, envía la apuesta utilizando el siguiente protocolo:
+
+```| LENGTH | BET |```
+
+LENGTH = son 4 bytes que representan el tamaño de la apuesta
+
+BET = la apuesta que está en un string serializado de tamaño variable con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER```
+
+ej6 - Para que el cliente pueda enviar múltiples apuestas en baches, se agregó un campo ```LAST_BATCH```, para que el servidor sepa cuál es el último batch, y se modificó el BET, que hora son varias apuestas separadas pro un '\n'.
+
+Protocolo:
+
+```| LAST_BATCH | LENGTH | BETS |```
+
+LAST_BATCH = un byte que marca si el batch es el último o no
+
+LENGTH = son 4 bytes que representan el tamaño de la apuesta
+
+BETS = las apuestas concatenadas con el siguiente formato: ```AGENCY;NAME;SURNAME;DOCUMENT;BIRTHDATE;NUMBER\n``` 
+
+ej7 - Una vez que el cliente envía el último batch y recibe un 'OK' del servidor, se queda esperando a que el servidor envíe la lista de ganadores. El servidor a medida que le llega el último batch de cada cliente les envía un 'OK' o 'ERR' y se anota que termino. Cuando todos los clientes terminan de enviar las apuestas, el servidor envía a cada cliente una lista con los ganadores de las apuestas que mandaron, con el siguiente formato: ```"DOCUMENTO;....;DOCUMENTO\n"```
+
+## Ejecución
+
+ej1 - Para ejecutar el ejercicio 1 utilizar el script ```generar-compose.sh``` pasando por parámetro el nombre de archivo y la cantidad de clientes
+- ```./generar-compose.sh docker-compose-dev.yaml 5```
+
+ej2 - Primero generar el archivo compose con el script ```generar-compose.sh``` y luego utilizar el comando:
+- ```make docker-compose-up```
+
+ej3 - Para ejecutar el ejercicio 3 primero se debe inicializar el servidor con el siguiente comando:
+- ```make docker-compose-up```
+
+ luego ejecutar el script validar-echo-server.sh
+
+- ```validar-echo-server.sh```
+
+ej4 - Utilizar los comandos
+- ```make docker-compose-up```
+- ```make docker-compose-down```
+
+ej5 - ej6 - ej7 - ej8 - Utilizar el comando
+- ```make docker-compose-up```
